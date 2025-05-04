@@ -1,12 +1,40 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { LiveMatchService } from "../services/LiveMatchService";
+import { StreamEmbedService } from "../services/StreamEmbedService";
+import { SuggestionService } from "../services/SuggestionService";
+import ReactPlayer from "react-player";
 
-const BOT_AVATAR = "/furia-bot.png"; // Coloque um avatar do jaguar ou logo da FURIA em public/
-const USER_AVATAR = "/user.png"; // Opcional: avatar genérico para usuário
+const BOT_AVATAR = "/furia-bot.png";
+const USER_AVATAR = "/user.png";
+
+function Avatar({
+  src,
+  alt,
+  fallback,
+}: {
+  src: string;
+  alt: string;
+  fallback: string;
+}) {
+  const [errored, setErrored] = useState(false);
+  return errored ? (
+    <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500 border border-gray-200">
+      {fallback}
+    </div>
+  ) : (
+    <img
+      src={src}
+      alt={alt}
+      className="w-7 h-7 rounded-full border border-gray-200 bg-white shadow-sm"
+      onError={() => setErrored(true)}
+    />
+  );
+}
 
 const SUGESTOES = [
-  { comando: "/jogos", label: "Ver jogos ao vivo" },
+  { comando: "/jogos", label: "Partidas FURIA" },
   { comando: "/curiosidade", label: "Curiosidade FURIA" },
   { comando: "/torcida", label: "Mandar energia!" },
   { comando: "/sugestao", label: "Enviar sugestão" },
@@ -30,23 +58,76 @@ function getRandom(arr: string[]) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+async function handleJogos() {
+  try {
+    const matches = await LiveMatchService.getLiveMatches();
+    if (!matches.length)
+      return "No momento, não há jogos ao vivo. Fique ligado!";
+    return matches
+      .map(
+        (m) =>
+          `Partida: ${m.team1} vs ${m.team2}\nEvento: ${m.event}\nStatus: ${
+            m.status === "live" ? "AO VIVO" : "Em breve"
+          }\nPlacar: ${m.score1} x ${m.score2}`
+      )
+      .join("\n---\n");
+  } catch {
+    return "Erro ao buscar partidas ao vivo.";
+  }
+}
+
+function handleCuriosidade() {
+  return getRandom(CURIOSIDADES);
+}
+
+function handleTorcida() {
+  return getRandom(TORCIDA);
+}
+
+async function handleStream() {
+  const url = await StreamEmbedService.getLiveStreamUrl();
+  if (url) {
+    return url;
+  }
+  return null;
+}
+
+async function handleSugestao(text: string) {
+  const res = await SuggestionService.sendSuggestion(text);
+  if (res.success) {
+    return `Sugestão enviada com sucesso!\n${
+      res.analysis ? "Análise: " + res.analysis : ""
+    }`;
+  }
+  return `Erro ao enviar sugestão: ${res.error}`;
+}
+
+function handleTextoLivre() {
+  return "Mensagem recebida! Digite /jogos, /curiosidade, /torcida, /sugestao ou clique nos botões acima para interagir mais.";
+}
+
 export default function ChatBot() {
   const [messages, setMessages] = useState([
     {
       from: "bot",
-      text: "Bem-vindo ao chat oficial da FURIA! 🐆\n\nEscolha um comando ou mande sua mensagem para interagir.\n\nComandos: /jogos, /curiosidade, /torcida, /sugestao",
+      text: "Bem-vindo ao chat oficial da FURIA!\n\nEscolha um comando ou mande sua mensagem para interagir.\n\nComandos: /jogos, /curiosidade, /torcida, /sugestao",
     },
   ]);
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [aguardandoSugestao, setAguardandoSugestao] = useState(false);
+  const [showStream, setShowStream] = useState(false);
+  const [streamUrl, setStreamUrl] = useState<string | null>(null);
+  const [streamLoading, setStreamLoading] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    // Scroll automático para a última mensagem
+    setIsClient(true);
     if (chatRef.current) {
       chatRef.current.scrollTop = chatRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, showStream]);
 
   const handleSend = async (msg?: string) => {
     const userMsg = msg || input.trim();
@@ -57,31 +138,40 @@ export default function ChatBot() {
 
     setTimeout(async () => {
       let botMsg = "";
-      if (userMsg.toLowerCase().startsWith("/jogos")) {
-        botMsg = "Buscando status dos jogos ao vivo...";
-        // Aqui você pode integrar com o componente LiveMatch ou API
-        botMsg = "No momento, não há jogos ao vivo. Fique ligado!";
+      if (aguardandoSugestao) {
+        botMsg = await handleSugestao(userMsg);
+        setAguardandoSugestao(false);
+      } else if (userMsg.toLowerCase().startsWith("/jogos")) {
+        botMsg = await handleJogos();
       } else if (userMsg.toLowerCase().startsWith("/curiosidade")) {
-        botMsg = getRandom(CURIOSIDADES);
+        botMsg = handleCuriosidade();
       } else if (userMsg.toLowerCase().startsWith("/torcida")) {
-        botMsg = getRandom(TORCIDA);
+        botMsg = handleTorcida();
       } else if (userMsg.toLowerCase().startsWith("/sugestao")) {
-        botMsg = "Para enviar uma sugestão, use o formulário abaixo do chat!";
+        botMsg = "Por favor, digite sua sugestão e envie.";
+        setAguardandoSugestao(true);
       } else {
-        botMsg =
-          "Mensagem recebida! Digite /jogos, /curiosidade, /torcida ou /sugestao para interagir mais.";
+        botMsg = handleTextoLivre();
       }
       setMessages((msgs) => [...msgs, { from: "bot", text: botMsg }]);
       setIsSending(false);
     }, 800);
   };
 
+  const handleStreamButton = async () => {
+    setStreamLoading(true);
+    const url = await handleStream();
+    setStreamUrl(url);
+    setShowStream(true);
+    setStreamLoading(false);
+  };
+
   return (
-    <div className="w-full max-w-2xl mx-auto flex flex-col h-[70vh] bg-black border-2 border-green-500 rounded-xl shadow-lg overflow-hidden">
+    <div className="w-full max-w-2xl mx-auto flex flex-col h-[70vh] bg-white rounded-2xl shadow-md overflow-hidden border border-gray-200">
       <div
         ref={chatRef}
-        className="flex-1 overflow-y-auto p-4 space-y-4 bg-black"
-        style={{ scrollbarColor: "#22c55e #000" }}
+        className="flex-1 overflow-y-auto p-6 space-y-4 bg-white"
+        style={{ scrollbarColor: "#22c55e #fff" }}
       >
         {messages.map((msg, i) => (
           <div
@@ -91,41 +181,100 @@ export default function ChatBot() {
             }`}
           >
             {msg.from === "bot" && (
-              <img
-                src={BOT_AVATAR}
-                alt="FURIA Bot"
-                className="w-8 h-8 rounded-full mr-2 border-2 border-green-500 bg-white"
-              />
+              <Avatar src={BOT_AVATAR} alt="FURIA Bot" fallback="FB" />
             )}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className={`max-w-[70%] px-4 py-2 rounded-2xl text-base whitespace-pre-line ${
+              className={`max-w-[70%] px-4 py-2 rounded-3xl text-base whitespace-pre-line shadow-sm ${
                 msg.from === "bot"
-                  ? "bg-green-900 text-green-300 border border-green-500"
-                  : "bg-green-500 text-black border border-green-400"
+                  ? "bg-gray-100 text-gray-800"
+                  : "bg-green-100 text-green-900"
               }`}
+              style={{
+                borderRadius:
+                  msg.from === "bot"
+                    ? "18px 18px 18px 6px"
+                    : "18px 18px 6px 18px",
+              }}
             >
               {msg.text}
             </motion.div>
             {msg.from === "user" && (
-              <img
-                src={USER_AVATAR}
-                alt="Você"
-                className="w-8 h-8 rounded-full ml-2 border-2 border-green-500 bg-white"
-              />
+              <Avatar src={USER_AVATAR} alt="Você" fallback="U" />
             )}
           </div>
         ))}
+        <AnimatePresence>
+          {isClient && showStream && (
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 30 }}
+              className="fixed bottom-8 left-1/2 z-50 -translate-x-1/2 bg-white border border-gray-200 rounded-xl shadow-lg p-2 flex flex-col items-center"
+              style={{ width: 350, maxWidth: "90vw" }}
+            >
+              <div className="flex w-full justify-between items-center mb-2">
+                <span className="text-gray-800 font-bold text-sm">
+                  Transmissão ao vivo
+                </span>
+                <button
+                  className="text-gray-400 hover:text-gray-700 text-lg font-bold px-2"
+                  onClick={() => setShowStream(false)}
+                  title="Fechar"
+                >
+                  ×
+                </button>
+              </div>
+              {streamLoading ? (
+                <div className="w-full aspect-video flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+                </div>
+              ) : streamUrl ? (
+                <div className="w-full aspect-video rounded-lg overflow-hidden">
+                  <ReactPlayer
+                    url={streamUrl}
+                    width="100%"
+                    height="100%"
+                    controls
+                    playing
+                    muted={false}
+                  />
+                </div>
+              ) : (
+                <div className="w-full aspect-video flex items-center justify-center text-gray-400">
+                  Sem transmissão ao vivo
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-      <div className="bg-black border-t border-green-700 p-2 flex flex-col gap-2">
+      <div className="bg-white border-t border-gray-200 p-3 flex flex-col gap-2">
         <div className="flex gap-2 flex-wrap mb-1">
-          {SUGESTOES.map((s) => (
+          <button
+            className="bg-green-500 text-white font-semibold px-4 py-2 rounded-full hover:bg-green-600 transition shadow-none text-sm min-w-[150px]"
+            onClick={handleSend.bind(null, "/jogos")}
+            disabled={isSending}
+            style={{ fontWeight: 600 }}
+          >
+            Partidas FURIA
+          </button>
+          <button
+            className="bg-green-100 text-green-900 font-semibold px-4 py-2 rounded-full hover:bg-green-200 transition shadow-none text-sm min-w-[150px] border border-green-200"
+            onClick={handleStreamButton}
+            disabled={isSending}
+            style={{ fontWeight: 600 }}
+          >
+            Assistir transmissão
+          </button>
+          {SUGESTOES.filter((s) => s.comando !== "/jogos").map((s) => (
             <button
               key={s.comando}
-              className="bg-green-900 text-green-300 border border-green-500 rounded-full px-3 py-1 text-xs hover:bg-green-500 hover:text-black transition"
+              className="bg-gray-100 text-gray-700 border border-gray-200 rounded-full px-4 py-2 text-sm hover:bg-green-100 hover:text-green-900 transition shadow-none min-w-[150px] font-semibold"
               onClick={() => handleSend(s.comando)}
               disabled={isSending}
+              style={{ fontWeight: 500 }}
             >
               {s.label}
             </button>
@@ -140,8 +289,12 @@ export default function ChatBot() {
         >
           <input
             type="text"
-            className="flex-1 bg-black border-2 border-green-500 rounded-lg px-4 py-2 text-white placeholder-green-400 focus:outline-none focus:ring-2 focus:ring-green-500"
-            placeholder="Digite sua mensagem..."
+            className="flex-1 bg-white border border-gray-300 rounded-full px-4 py-2 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 shadow-none text-base"
+            placeholder={
+              aguardandoSugestao
+                ? "Digite sua sugestão..."
+                : "Digite sua mensagem..."
+            }
             value={input}
             onChange={(e) => setInput(e.target.value)}
             disabled={isSending}
@@ -149,7 +302,7 @@ export default function ChatBot() {
           />
           <button
             type="submit"
-            className="bg-green-500 text-black font-bold px-6 py-2 rounded-lg hover:bg-green-600 transition disabled:opacity-60"
+            className="bg-green-500 text-white font-bold px-6 py-2 rounded-full hover:bg-green-600 transition disabled:opacity-60 shadow-none text-base"
             disabled={isSending || !input.trim()}
           >
             Enviar
