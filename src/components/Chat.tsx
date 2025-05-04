@@ -22,7 +22,6 @@ interface Message {
 export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
-  const [user, setUser] = useState("anon");
   const socketRef = useRef<Socket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -65,7 +64,6 @@ export default function Chat() {
     if (newMessage.trim() === "") return;
 
     const messageData = {
-      user,
       text: newMessage,
       timestamp: serverTimestamp(),
     };
