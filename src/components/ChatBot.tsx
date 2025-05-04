@@ -6,6 +6,7 @@ import { StreamEmbedService } from "../services/StreamEmbedService";
 import { SuggestionService } from "../services/SuggestionService";
 import ReactPlayer from "react-player";
 import { Bet, getBetsLocal, setBetsLocal, addBet } from "../services/BetService";
+import Link from "next/link";
 
 const BOT_AVATAR = "/Furia_Esports_logo.png";
 const USER_AVATAR = "/user.png";
@@ -36,8 +37,6 @@ function Avatar({
 
 const SUGESTOES = [
   { comando: "/jogos", label: "Partidas FURIA" },
-  { comando: "/curiosidade", label: "Curiosidade FURIA" },
-  { comando: "/torcida", label: "Mandar energia!" },
   { comando: "/sugestao", label: "Enviar sugestão" },
 ];
 
@@ -175,10 +174,6 @@ export default function ChatBot() {
         setAguardandoSugestao(false);
       } else if (userMsg.toLowerCase().startsWith("/jogos")) {
         botMsg = await handleJogos();
-      } else if (userMsg.toLowerCase().startsWith("/curiosidade")) {
-        botMsg = handleCuriosidade();
-      } else if (userMsg.toLowerCase().startsWith("/torcida")) {
-        botMsg = handleTorcida();
       } else if (userMsg.toLowerCase().startsWith("/sugestao")) {
         botMsg = "Por favor, digite sua sugestão e envie.";
         setAguardandoSugestao(true);
@@ -393,34 +388,38 @@ export default function ChatBot() {
       </div>
       {/* Barra de comandos */}
       <div className="bg-white border-t border-gray-200 p-3 flex flex-col gap-2">
-        <div className="flex gap-1 flex-nowrap mb-1">
+        <div className="flex-nowrap flex-row flex gap-4 justify-center items-center mb-1 px-2 py-2 bg-gray-50 rounded-xl overflow-x-auto scrollbar-hide">
           <button
-            className="bg-black text-white font-semibold px-2 py-1 rounded-full hover:bg-gray-800 transition shadow-none text-xs min-w-[90px]"
+            className="min-w-[90px] px-3 py-1.5 rounded-full font-semibold text-xs border border-gray-900 bg-black text-white flex items-center justify-center text-center shadow-sm"
             onClick={handleSend.bind(null, "/jogos")}
             disabled={isSending}
-            style={{ fontWeight: 600 }}
           >
             Partidas FURIA
           </button>
           <button
-            className="bg-gray-200 text-black font-semibold px-2 py-1 rounded-full hover:bg-gray-300 transition shadow-none text-xs min-w-[90px] border border-gray-300"
+            className="min-w-[90px] px-3 py-1.5 rounded-full font-semibold text-xs border border-gray-200 transition text-black bg-gray-100 hover:bg-gray-200 hover:text-black flex items-center justify-center text-center shadow-sm"
             onClick={handleStreamButton}
             disabled={isSending}
-            style={{ fontWeight: 600 }}
           >
             Assistir transmissão
           </button>
           {SUGESTOES.filter((s) => s.comando !== "/jogos").map((s) => (
             <button
               key={s.comando}
-              className="bg-gray-100 text-black border border-gray-200 rounded-full px-2 py-1 text-xs hover:bg-gray-200 hover:text-black transition shadow-none min-w-[90px] font-semibold"
+              className="min-w-[90px] px-3 py-1.5 rounded-full font-semibold text-xs border border-gray-200 transition text-black bg-gray-100 hover:bg-gray-200 hover:text-black flex items-center justify-center text-center shadow-sm"
               onClick={() => handleSend(s.comando)}
               disabled={isSending}
-              style={{ fontWeight: 500 }}
             >
               {s.label}
             </button>
           ))}
+          <Link
+            href="/torcida"
+            className="min-w-[90px] px-3 py-1.5 rounded-full font-semibold text-xs border border-gray-200 transition text-black bg-gray-100 hover:bg-gray-200 hover:text-black flex items-center justify-center text-center shadow-sm"
+            style={{ textDecoration: 'none' }}
+          >
+            Chat em tempo real
+          </Link>
         </div>
         <form
           className="flex gap-2"
