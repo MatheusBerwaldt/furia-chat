@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   description:
     "Chat oficial da FURIA para transmissões e interação com a torcida.",
   icons: {
-    icon: "/favicon.ico",
+    icon: "/Furia_Esports_logo.png",
   },
 };
 

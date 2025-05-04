@@ -6,7 +6,7 @@ import { StreamEmbedService } from "../services/StreamEmbedService";
 import { SuggestionService } from "../services/SuggestionService";
 import ReactPlayer from "react-player";
 
-const BOT_AVATAR = "/furia-bot.png";
+const BOT_AVATAR = "/Furia_Esports_logo.png";
 const USER_AVATAR = "/user.png";
 
 function Avatar({
@@ -66,11 +66,12 @@ async function handleJogos() {
     return matches
       .map(
         (m) =>
-          `Partida: ${m.team1} vs ${m.team2}\nEvento: ${m.event}\nStatus: ${
-            m.status === "live" ? "AO VIVO" : "Em breve"
-          }\nPlacar: ${m.score1} x ${m.score2}`
+          `🦁 <b>${m.team1}</b> <span style="color:#888">vs</span> <b>${m.team2}</b>\n` +
+          `🏆 <b>${m.event}</b>\n` +
+          `⏰ <b>Status:</b> <span style="color:${m.status === "live" ? '#111' : '#888'};font-weight:bold;">${m.status === "live" ? "AO VIVO" : "Em breve"}</span>\n` +
+          `🔢 <b>Placar:</b> <span style=\"color:#222;font-weight:bold;\">${m.score1} x ${m.score2}</span>`
       )
-      .join("\n---\n");
+      .join("\n<hr style='border:0;border-top:1px solid #eee;margin:8px 0;' />\n");
   } catch {
     return "Erro ao buscar partidas ao vivo.";
   }
@@ -198,7 +199,7 @@ export default function ChatBot() {
                     : "18px 18px 6px 18px",
               }}
             >
-              {msg.text}
+              <span dangerouslySetInnerHTML={{ __html: msg.text }} />
             </motion.div>
             {msg.from === "user" && (
               <Avatar src={USER_AVATAR} alt="Você" fallback="U" />
@@ -253,7 +254,7 @@ export default function ChatBot() {
       <div className="bg-white border-t border-gray-200 p-3 flex flex-col gap-2">
         <div className="flex gap-1 flex-nowrap mb-1">
           <button
-            className="bg-green-500 text-white font-semibold px-2 py-1 rounded-full hover:bg-green-600 transition shadow-none text-xs min-w-[90px]"
+            className="bg-black text-white font-semibold px-2 py-1 rounded-full hover:bg-gray-800 transition shadow-none text-xs min-w-[90px]"
             onClick={handleSend.bind(null, "/jogos")}
             disabled={isSending}
             style={{ fontWeight: 600 }}
@@ -261,7 +262,7 @@ export default function ChatBot() {
             Partidas FURIA
           </button>
           <button
-            className="bg-green-100 text-green-900 font-semibold px-2 py-1 rounded-full hover:bg-green-200 transition shadow-none text-xs min-w-[90px] border border-green-200"
+            className="bg-gray-200 text-black font-semibold px-2 py-1 rounded-full hover:bg-gray-300 transition shadow-none text-xs min-w-[90px] border border-gray-300"
             onClick={handleStreamButton}
             disabled={isSending}
             style={{ fontWeight: 600 }}
@@ -271,7 +272,7 @@ export default function ChatBot() {
           {SUGESTOES.filter((s) => s.comando !== "/jogos").map((s) => (
             <button
               key={s.comando}
-              className="bg-gray-100 text-gray-700 border border-gray-200 rounded-full px-2 py-1 text-xs hover:bg-green-100 hover:text-green-900 transition shadow-none min-w-[90px] font-semibold"
+              className="bg-gray-100 text-black border border-gray-200 rounded-full px-2 py-1 text-xs hover:bg-gray-200 hover:text-black transition shadow-none min-w-[90px] font-semibold"
               onClick={() => handleSend(s.comando)}
               disabled={isSending}
               style={{ fontWeight: 500 }}
@@ -289,7 +290,7 @@ export default function ChatBot() {
         >
           <input
             type="text"
-            className="flex-1 bg-white border border-gray-300 rounded-full px-4 py-2 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 shadow-none text-base"
+            className="flex-1 bg-white border border-gray-300 rounded-full px-4 py-2 text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black shadow-none text-base"
             placeholder={
               aguardandoSugestao
                 ? "Digite sua sugestão..."
@@ -302,7 +303,7 @@ export default function ChatBot() {
           />
           <button
             type="submit"
-            className="bg-green-500 text-white font-bold px-6 py-2 rounded-full hover:bg-green-600 transition disabled:opacity-60 shadow-none text-base"
+            className="bg-black text-white font-bold px-6 py-2 rounded-full hover:bg-gray-800 transition disabled:opacity-60 shadow-none text-base"
             disabled={isSending || !input.trim()}
           >
             Enviar
