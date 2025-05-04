@@ -4,20 +4,18 @@ Chat oficial da FURIA para transmissões, interação com a torcida, sugestões 
 
 ## Funcionalidades
 
-- Chat em tempo real com torcedores
-- Sugestão de melhorias, bugs e elogios com análise IA (mock)
-- Exibição de partidas ao vivo (mock)
-- Player de transmissão (mock)
-- Dashboard de sugestões (mock)
-- Interface responsiva e moderna
+- Sugestão de melhorias, bugs e elogios com análise IA
+- Exibição de partidas ao vivo
+- Player de transmissão 
+- Dashboard de sugestões 
 
 ## Tecnologias
 
 - Next.js 15 (App Router)
 - React 19
 - TailwindCSS
-- Firebase (mockado para demo)
-- OpenAI API (mockado para demo)
+- Firebase 
+- OpenAI API
 - React Player
 - Recharts
 
@@ -64,11 +62,6 @@ OPENAI_API_KEY=...
 - `src/app` — páginas e layout
 - `src/components` — componentes reutilizáveis (ChatBot, StreamEmbed, Dashboard, etc)
 - `src/services` — serviços de integração (mockados)
-
-## Customização
-
-- Para trocar o logo ou favicon, substitua os arquivos em `public/` e `src/app/favicon.ico`.
-- Para ativar integrações reais, descomente os trechos de código indicados nos serviços e rotas.
 
 ## Licença
 
