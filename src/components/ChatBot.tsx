@@ -251,9 +251,9 @@ export default function ChatBot() {
         </AnimatePresence>
       </div>
       <div className="bg-white border-t border-gray-200 p-3 flex flex-col gap-2">
-        <div className="flex gap-2 flex-wrap mb-1">
+        <div className="flex gap-1 flex-nowrap mb-1">
           <button
-            className="bg-green-500 text-white font-semibold px-4 py-2 rounded-full hover:bg-green-600 transition shadow-none text-sm min-w-[150px]"
+            className="bg-green-500 text-white font-semibold px-2 py-1 rounded-full hover:bg-green-600 transition shadow-none text-xs min-w-[90px]"
             onClick={handleSend.bind(null, "/jogos")}
             disabled={isSending}
             style={{ fontWeight: 600 }}
@@ -261,7 +261,7 @@ export default function ChatBot() {
             Partidas FURIA
           </button>
           <button
-            className="bg-green-100 text-green-900 font-semibold px-4 py-2 rounded-full hover:bg-green-200 transition shadow-none text-sm min-w-[150px] border border-green-200"
+            className="bg-green-100 text-green-900 font-semibold px-2 py-1 rounded-full hover:bg-green-200 transition shadow-none text-xs min-w-[90px] border border-green-200"
             onClick={handleStreamButton}
             disabled={isSending}
             style={{ fontWeight: 600 }}
@@ -271,7 +271,7 @@ export default function ChatBot() {
           {SUGESTOES.filter((s) => s.comando !== "/jogos").map((s) => (
             <button
               key={s.comando}
-              className="bg-gray-100 text-gray-700 border border-gray-200 rounded-full px-4 py-2 text-sm hover:bg-green-100 hover:text-green-900 transition shadow-none min-w-[150px] font-semibold"
+              className="bg-gray-100 text-gray-700 border border-gray-200 rounded-full px-2 py-1 text-xs hover:bg-green-100 hover:text-green-900 transition shadow-none min-w-[90px] font-semibold"
               onClick={() => handleSend(s.comando)}
               disabled={isSending}
               style={{ fontWeight: 500 }}
