@@ -23,7 +23,7 @@ Chat oficial da FURIA para transmissões, interação com a torcida, sugestões 
 
 1. Clone o repositório:
    ```bash
-   git clone <url-do-repo>
+   git clone https://github.com/MatheusBerwaldt/furia-chat.git
    cd furia-chat
    ```
 2. Instale as dependências:
