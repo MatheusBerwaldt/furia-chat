@@ -147,6 +147,12 @@ export default function ChatBot() {
   const [apostaModal, setApostaModal] = useState<{match: any, team: string} | null>(null);
   const [apostaValor, setApostaValor] = useState("");
 
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("furia_nickname");
+    localStorage.removeItem("furia_saldo");
+    localStorage.removeItem("furia_apostas");
+  }
+
   useEffect(() => {
     setIsClient(true);
     if (chatRef.current) {
@@ -238,8 +244,8 @@ export default function ChatBot() {
       <div className="rounded-xl bg-gray-50 border border-gray-200 shadow-sm px-4 py-3 mb-2 flex flex-col gap-2" style={{ fontFamily: 'Inter, Arial, sans-serif' }}>
         <h3 className="font-bold text-black mb-1 text-base tracking-tight">Suas apostas</h3>
         <ul className="flex flex-col gap-1">
-          {apostas.map((a: Bet) => (
-            <li key={a.id} className="flex items-center justify-between text-sm md:text-base">
+          {apostas.map((a: Bet, idx) => (
+            <li key={a.id + '-' + idx} className="flex items-center justify-between text-sm md:text-base">
               <span className="truncate">
                 <span className="font-semibold text-black">{a.match.team1}</span>
                 <span className="mx-1 text-gray-500">vs</span>

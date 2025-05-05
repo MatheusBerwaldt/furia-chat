@@ -137,8 +137,8 @@ export default function TorcidaChat() {
     setMessages((msgs) => [...msgs, { user: "Você", text: value, ts: Date.now() }]);
     if (value.toLowerCase() === "/acende") triggerFire();
     if (value.toLowerCase() === "/fallen" || value.toLowerCase().includes("fallen")) triggerFallen();
-    if (value.toLowerCase() === "/curiosidade") sendCuriosidade();
-    if (value.toLowerCase() === "/torcida") sendTorcida();
+    if (value.toLowerCase() === "/curiosidade") handleCuriosidade();
+    if (value.toLowerCase() === "/torcida") handleTorcida();
     if (inputRef.current) inputRef.current.value = "";
   }
 
@@ -171,13 +171,17 @@ export default function TorcidaChat() {
   }
 
   function handleCuriosidade() {
-    sendCuriosidade();
     setMessages((msgs) => [...msgs, { user: "Você", text: "💡 Curiosidade FURIA", ts: Date.now() }]);
+    setTimeout(() => {
+      sendCuriosidade();
+    }, 600);
   }
 
   function handleTorcida() {
-    sendTorcida();
     setMessages((msgs) => [...msgs, { user: "Você", text: "🙌 Mandar energia!", ts: Date.now() }]);
+    setTimeout(() => {
+      sendTorcida();
+    }, 600);
   }
 
   return (
