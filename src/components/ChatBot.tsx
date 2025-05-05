@@ -7,6 +7,7 @@ import { SuggestionService } from "../services/SuggestionService";
 import ReactPlayer from "react-player";
 import { Bet, getBetsLocal, setBetsLocal, addBet } from "../services/BetService";
 import Link from "next/link";
+import StreamModal from "./StreamModal";
 
 const BOT_AVATAR = "/Furia_Esports_logo.png";
 const USER_AVATAR = "/user.png";
@@ -70,11 +71,13 @@ async function handleJogos() {
             <button onclick=\"window.__abrirAposta('${m.id}','${m.team2}')\" style='background:#111;color:#fff;border-radius:8px;padding:6px 16px;font-weight:bold;border:none;cursor:pointer;transition:background 0.2s;'>Apostar ${m.team2}</button>
           </div>`
         : "";
+      const dataHora = m.status === "upcoming" && m.date ? `\n🗓 <b>Data:</b> <span style=\"color:#222;font-weight:bold;\">${new Date(m.date).toLocaleString()}</span>` : "";
       return (
         `🦁 <b>${m.team1}</b> <span style=\"color:#888\">vs</span> <b>${m.team2}</b>\n` +
         `🏆 <b>${m.event}</b>\n` +
         `⏰ <b>Status:</b> <span style=\"color:${m.status === "live" ? '#111' : '#888'};font-weight:bold;\">${m.status === "live" ? "AO VIVO" : "Em breve"}</span>\n` +
-        `🔢 <b>Placar:</b> <span style=\"color:#222;font-weight:bold;\">${m.score1} x ${m.score2}</span>\n` +
+        dataHora +
+        `\n🔢 <b>Placar:</b> <span style=\"color:#222;font-weight:bold;\">${m.score1} x ${m.score2}</span>\n` +
         apostaBtns
       );
     });
@@ -345,46 +348,11 @@ export default function ChatBot() {
         ))}
         <AnimatePresence>
           {isClient && showStream && (
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 30 }}
-              className="fixed bottom-8 left-1/2 z-50 -translate-x-1/2 bg-white border border-gray-200 rounded-xl shadow-lg p-2 flex flex-col items-center"
-              style={{ width: 350, maxWidth: "90vw" }}
-            >
-              <div className="flex w-full justify-between items-center mb-2">
-                <span className="text-gray-800 font-bold text-sm">
-                  Transmissão ao vivo
-                </span>
-                <button
-                  className="text-gray-400 hover:text-gray-700 text-lg font-bold px-2"
-                  onClick={() => setShowStream(false)}
-                  title="Fechar"
-                >
-                  ×
-                </button>
-              </div>
-              {streamLoading ? (
-                <div className="w-full aspect-video flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
-                </div>
-              ) : streamUrl ? (
-                <div className="w-full aspect-video rounded-lg overflow-hidden">
-                  <ReactPlayer
-                    url={streamUrl}
-                    width="100%"
-                    height="100%"
-                    controls
-                    playing
-                    muted={false}
-                  />
-                </div>
-              ) : (
-                <div className="w-full aspect-video flex items-center justify-center text-gray-400">
-                  Sem transmissão ao vivo
-                </div>
-              )}
-            </motion.div>
+            <StreamModal
+              onClose={() => setShowStream(false)}
+              streamUrl={streamUrl}
+              streamLoading={streamLoading}
+            />
           )}
         </AnimatePresence>
       </div>

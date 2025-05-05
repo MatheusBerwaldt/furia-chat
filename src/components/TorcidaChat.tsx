@@ -1,6 +1,9 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import StreamModal from "./StreamModal";
+import { StreamEmbedService } from "../services/StreamEmbedService";
+import { useRouter } from "next/navigation";
 
 function FireEffect({ active }: { active: boolean }) {
   if (!active) return null;
@@ -110,11 +113,15 @@ function getRandom(arr: string[]) {
 }
 
 export default function TorcidaChat() {
+  const router = useRouter();
   const [fireActive, setFireActive] = useState(false);
   const [fallenActive, setFallenActive] = useState(false);
   const [messages, setMessages] = useState<{user: string, text: string, ts: number}[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const chatRef = useRef<HTMLDivElement>(null);
+  const [showStream, setShowStream] = useState(false);
+  const [streamUrl, setStreamUrl] = useState<string | null>(null);
+  const [streamLoading, setStreamLoading] = useState(false);
 
   // Efeito: mensagens automáticas simulando chat real
   useEffect(() => {
@@ -184,8 +191,24 @@ export default function TorcidaChat() {
     }, 600);
   }
 
+  async function handleStreamButton() {
+    setStreamLoading(true);
+    const url = await StreamEmbedService.getLiveStreamUrl();
+    setStreamUrl(url);
+    setShowStream(true);
+    setStreamLoading(false);
+  }
+
   return (
     <div className="relative w-full max-w-2xl mx-auto flex flex-col h-[70vh] bg-white rounded-2xl shadow-md overflow-hidden border border-gray-200">
+      <div className="w-full flex items-center justify-start p-4 pb-0">
+        <button
+          className="px-4 py-2 rounded-full bg-black text-white font-bold text-sm border border-gray-900 hover:bg-gray-800 transition flex items-center gap-2"
+          onClick={() => router.back()}
+        >
+          ← Voltar
+        </button>
+      </div>
       <FireEffect active={fireActive} />
       <FallenEffect active={fallenActive} />
       <div ref={chatRef} className="flex-1 overflow-y-auto p-6 space-y-2 bg-white">
@@ -238,7 +261,21 @@ export default function TorcidaChat() {
           >
             🙌 Mandar energia!
           </button>
+          <button
+            className="min-w-[60px] px-3 py-1.5 rounded-full font-bold text-xs border border-gray-900 bg-black text-white flex items-center justify-center text-center shadow-sm"
+            onClick={handleStreamButton}
+            disabled={streamLoading}
+          >
+            📺 Assistir transmissão
+          </button>
         </div>
+        {showStream && (
+          <StreamModal
+            onClose={() => setShowStream(false)}
+            streamUrl={streamUrl}
+            streamLoading={streamLoading}
+          />
+        )}
       </div>
     </div>
   );
